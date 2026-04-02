@@ -9,3 +9,5 @@ export const ERR_CODES = {
 }
 
 export const LEDGER_ID = 'GLOBAL_LEDGER'
+
+export const DOUBLE_SHIFT = 2

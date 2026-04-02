@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { DatabaseService } from 'src/database/database.service'
 import { CreatePaymentDto } from './dtos/create-payment.dto'
-import { ERR_CODES, LEDGER_ID } from 'src/utils/constants'
+import { DOUBLE_SHIFT, ERR_CODES, LEDGER_ID } from 'src/utils/constants'
 import { PaymentType } from 'generated/prisma/enums'
 import { Prisma } from 'generated/prisma/client'
 import { InvalidCategoryError, PaymentNotFoundError } from './payments.errors'
 import { ListPaymentsDto } from './dtos/list-payments.dto'
 import { UpdateAmountDto } from './dtos/update-payment.dto'
+import { UpdateTypeDto } from './dtos/update-type.dto'
 
 @Injectable()
 export class PaymentsService {
@@ -89,6 +90,30 @@ export class PaymentsService {
           income: isExpense ? undefined : { increment: diff },
           expense: isExpense ? { increment: diff } : undefined,
           balance: { increment: isExpense ? -diff : diff },
+        },
+      }),
+    ])
+  }
+
+  async type(data: UpdateTypeDto) {
+    const payment = await this.db.payment.findUnique({
+      where: { id: data.paymentId },
+      select: { amount: true, type: true },
+    })
+
+    if (!payment) throw new PaymentNotFoundError()
+    if (payment.type === data.type) return
+
+    const toExpense = data.type === PaymentType.expense
+
+    await this.db.$transaction([
+      this.db.payment.update({ where: { id: data.paymentId }, data: { type: data.type } }),
+      this.db.ledger.update({
+        where: { id: LEDGER_ID },
+        data: {
+          income: toExpense ? { decrement: payment.amount } : { increment: payment.amount },
+          expense: toExpense ? { increment: payment.amount } : { decrement: payment.amount },
+          balance: { increment: DOUBLE_SHIFT * (toExpense ? -payment.amount : payment.amount) },
         },
       }),
     ])

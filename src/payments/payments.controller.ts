@@ -5,6 +5,7 @@ import { CreatePaymentDto } from './dtos/create-payment.dto'
 import { HttpResponse } from 'src/utils/types'
 import { ListPaymentsDto } from './dtos/list-payments.dto'
 import { UpdateAmountDto } from './dtos/update-payment.dto'
+import { UpdateTypeDto } from './dtos/update-type.dto'
 
 @Controller('payments')
 export class PaymentsController {
@@ -29,5 +30,12 @@ export class PaymentsController {
   async httpUpdateAmount(@Body() data: UpdateAmountDto): HttpResponse {
     await this.paymentsService.amount(data)
     return { success: true, message: 'Amount updated successfully.' }
+  }
+
+  @Patch('type')
+  @Auth({ roles: ['admin'] })
+  async httpUpdateType(@Body() data: UpdateTypeDto): HttpResponse {
+    await this.paymentsService.type(data)
+    return { success: true, message: 'Type updated successfully.' }
   }
 }
