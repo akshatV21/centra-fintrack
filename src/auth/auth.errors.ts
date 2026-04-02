@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common'
+import { UnauthorizedException } from '@nestjs/common'
 
 export class UnqiueUsernameError extends BadRequestException {
   constructor() {
@@ -11,8 +12,6 @@ export class InvalidCredentialsError extends BadRequestException {
     super({ error: 'InvalidCredentialsError' })
   }
 }
-
-import { UnauthorizedException } from '@nestjs/common'
 
 export class NoAuthHeaderError extends UnauthorizedException {
   constructor() {
