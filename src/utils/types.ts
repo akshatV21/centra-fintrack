@@ -2,6 +2,7 @@ import { Role } from 'generated/prisma/enums'
 
 export type HttpResponse = Promise<{
   success: boolean
+  message?: string
   error?: string
   data?: Record<string, any>
 }>
