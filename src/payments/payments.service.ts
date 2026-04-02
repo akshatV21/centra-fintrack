@@ -4,8 +4,9 @@ import { CreatePaymentDto } from './dtos/create-payment.dto'
 import { ERR_CODES, LEDGER_ID } from 'src/utils/constants'
 import { PaymentType } from 'generated/prisma/enums'
 import { Prisma } from 'generated/prisma/client'
-import { InvalidCategoryError } from './payments.errors'
+import { InvalidCategoryError, PaymentNotFoundError } from './payments.errors'
 import { ListPaymentsDto } from './dtos/list-payments.dto'
+import { UpdateAmountDto } from './dtos/update-payment.dto'
 
 @Injectable()
 export class PaymentsService {
@@ -68,5 +69,28 @@ export class PaymentsService {
     }
 
     return { payments, cursor }
+  }
+
+  async amount(data: UpdateAmountDto) {
+    const payment = await this.db.payment.findUnique({
+      where: { id: data.paymentId },
+      select: { amount: true, type: true },
+    })
+    if (!payment) throw new PaymentNotFoundError()
+
+    const diff = data.amount - payment.amount
+    const isExpense = payment.type === PaymentType.expense
+
+    await this.db.$transaction([
+      this.db.payment.update({ where: { id: data.paymentId }, data: { amount: data.amount } }),
+      this.db.ledger.update({
+        where: { id: LEDGER_ID },
+        data: {
+          income: isExpense ? undefined : { increment: diff },
+          expense: isExpense ? { increment: diff } : undefined,
+          balance: { increment: isExpense ? -diff : diff },
+        },
+      }),
+    ])
   }
 }

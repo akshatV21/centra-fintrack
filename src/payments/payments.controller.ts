@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Patch, Post, Query } from '@nestjs/common'
 import { PaymentsService } from './payments.service'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { CreatePaymentDto } from './dtos/create-payment.dto'
 import { HttpResponse } from 'src/utils/types'
 import { ListPaymentsDto } from './dtos/list-payments.dto'
+import { UpdateAmountDto } from './dtos/update-payment.dto'
 
 @Controller('payments')
 export class PaymentsController {
@@ -21,5 +22,12 @@ export class PaymentsController {
   async httpListPayments(@Query() query: ListPaymentsDto): HttpResponse {
     const result = await this.paymentsService.list(query)
     return { success: true, message: 'Payments listed successfully.', data: result }
+  }
+
+  @Patch('amount')
+  @Auth({ roles: ['admin'] })
+  async httpUpdateAmount(@Body() data: UpdateAmountDto): HttpResponse {
+    await this.paymentsService.amount(data)
+    return { success: true, message: 'Amount updated successfully.' }
   }
 }
