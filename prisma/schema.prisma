@@ -13,16 +13,53 @@ enum Role {
   admin
 }
 
+enum Status {
+  active
+  inactive
+}
+
 model User {
   id String @id @default(cuid())
 
   username String @unique
   password String
 
-  role Role @default(user)
+  role   Role   @default(user)
+  status Status @default(active)
 
   refresh String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([role, createdAt(sort: Asc)])
+}
+
+model Category {
+  id String @id @default(cuid())
+
+  name String
+
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name, createdAt(sort: Asc)])
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  amount Float
+  date   DateTime
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date(sort: Desc)])
+  @@index([categoryId, date(sort: Desc)])
 }
