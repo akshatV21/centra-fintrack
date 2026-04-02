@@ -6,6 +6,7 @@ import { Role, Status } from 'generated/prisma/enums'
 import { UpdateUserStatusDto } from './dtos/update-status.dto'
 import { ERR_CODES } from 'src/utils/constants'
 import { UserNotFoundError } from './users.errors'
+import { UpdateUserRoleDto } from './dtos/update-role.dto'
 
 @Injectable()
 export class UsersService {
@@ -33,6 +34,13 @@ export class UsersService {
 
   async status(data: UpdateUserStatusDto) {
     await this.db.user.update({ where: { id: data.userId }, data: { status: data.status } }).catch(err => {
+      if (err.code === ERR_CODES.NOT_FOUND) throw new UserNotFoundError()
+      throw err
+    })
+  }
+
+  async role(data: UpdateUserRoleDto) {
+    await this.db.user.update({ where: { id: data.userId }, data: { role: data.role } }).catch(err => {
       if (err.code === ERR_CODES.NOT_FOUND) throw new UserNotFoundError()
       throw err
     })

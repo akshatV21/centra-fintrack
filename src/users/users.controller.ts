@@ -5,6 +5,7 @@ import { ListUsersDto } from './dtos/list-users.dto'
 import { AuthUser } from 'src/auth/decorators/auth-user.decorator'
 import { HttpResponse, User } from 'src/utils/types'
 import { UpdateUserStatusDto } from './dtos/update-status.dto'
+import { UpdateUserRoleDto } from './dtos/update-role.dto'
 
 @Controller('users')
 export class UsersController {
@@ -22,5 +23,12 @@ export class UsersController {
   async httpUpdateStatus(@Body() data: UpdateUserStatusDto): HttpResponse {
     await this.usersService.status(data)
     return { success: true, message: 'User status updated successfully.' }
+  }
+
+  @Patch('role')
+  @Auth({ roles: ['admin'] })
+  async httpUpdateRole(@Body() data: UpdateUserRoleDto): HttpResponse {
+    await this.usersService.role(data)
+    return { success: true, message: 'User role updated successfully.' }
   }
 }
