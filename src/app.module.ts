@@ -4,9 +4,10 @@ import { DatabaseModule } from './database/database.module'
 import { JwtModule } from '@nestjs/jwt'
 import { AuthModule } from './auth/auth.module'
 import { CategoriesModule } from './categories/categories.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, JwtModule.register({ global: true }), AuthModule, CategoriesModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, JwtModule.register({ global: true }), AuthModule, CategoriesModule, PaymentsModule],
   controllers: [],
   providers: [],
 })

@@ -35,6 +35,14 @@ model User {
   @@index([role, createdAt(sort: Asc)])
 }
 
+model Ledger {
+  id String @id @default("GLOBAL_LEDGER")
+
+  balance Float @default(0)
+  income  Float @default(0)
+  expense Float @default(0)
+}
+
 model Category {
   id String @id @default(cuid())
 
@@ -48,11 +56,18 @@ model Category {
   @@index([name, createdAt(sort: Asc)])
 }
 
+enum PaymentType {
+  income
+  expense
+}
+
 model Payment {
   id String @id @default(cuid())
 
   amount Float
   date   DateTime
+
+  type PaymentType @default(income)
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
