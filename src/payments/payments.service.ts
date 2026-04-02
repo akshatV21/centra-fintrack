@@ -35,7 +35,7 @@ export class PaymentsService {
       ])
 
       return payment
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === ERR_CODES.FOREIGN_KEY) throw new InvalidCategoryError()
       throw error
     }
@@ -117,5 +117,46 @@ export class PaymentsService {
         },
       }),
     ])
+  }
+
+  async summary() {
+    const now = new Date()
+
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+    const day = now.getDay() || 7 // if sunday (0), convert it to last (7)
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1)
+    weekStart.setHours(0, 0, 0, 0)
+
+    const [ledger, monthData, weekData] = await Promise.all([
+      this.db.ledger.findUnique({
+        where: { id: LEDGER_ID },
+        select: { balance: true, expense: true, income: true },
+      }),
+      this.db.payment.groupBy({
+        by: ['type'],
+        where: { date: { gte: monthStart } },
+        _sum: { amount: true },
+      }),
+      this.db.payment.groupBy({
+        by: ['type'],
+        where: { date: { gte: weekStart } },
+        _sum: { amount: true },
+      }),
+    ])
+
+    const parse = (data: any[]) => {
+      let income = 0
+      let expense = 0
+
+      for (const group of data) {
+        if (group.type === PaymentType.income) income = group._sum.amount || 0
+        if (group.type === PaymentType.expense) expense = group._sum.amount || 0
+      }
+
+      return { income, expense, balance: income - expense }
+    }
+
+    return { allTime: ledger, month: parse(monthData), week: parse(weekData) }
   }
 }

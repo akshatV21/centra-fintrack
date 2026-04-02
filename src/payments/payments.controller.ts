@@ -38,4 +38,11 @@ export class PaymentsController {
     await this.paymentsService.type(data)
     return { success: true, message: 'Type updated successfully.' }
   }
+
+  @Get('summary')
+  @Auth()
+  async httpGetSummary(): HttpResponse {
+    const summary = await this.paymentsService.summary()
+    return { success: true, message: 'Summary fetched successfully.', data: { summary } }
+  }
 }
