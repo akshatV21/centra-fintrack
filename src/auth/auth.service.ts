@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt'
 import { compareSync, hashSync } from 'bcrypt'
 import { LoginDto } from './dtos/login.dto'
 import { ConfigService } from '@nestjs/config'
-import { Role } from 'generated/prisma/enums'
+import { Role, Status } from 'generated/prisma/enums'
 
 @Injectable()
 export class AuthService {
@@ -33,7 +33,7 @@ export class AuthService {
 
   async login(data: LoginDto) {
     const registered = await this.db.user.findUnique({
-      where: { username: data.username },
+      where: { username: data.username, status: Status.active },
       select: { id: true, password: true, role: true },
     })
 

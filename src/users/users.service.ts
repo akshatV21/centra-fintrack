@@ -37,10 +37,15 @@ export class UsersService {
   }
 
   async status(data: UpdateUserStatusDto) {
-    await this.db.user.update({ where: { id: data.userId }, data: { status: data.status } }).catch(err => {
-      if (err.code === ERR_CODES.NOT_FOUND) throw new UserNotFoundError()
-      throw err
-    })
+    await this.db.user
+      .update({
+        where: { id: data.userId },
+        data: { status: data.status, refresh: data.status === Status.inactive ? null : undefined },
+      })
+      .catch(err => {
+        if (err.code === ERR_CODES.NOT_FOUND) throw new UserNotFoundError()
+        throw err
+      })
   }
 
   async role(data: UpdateUserRoleDto) {
