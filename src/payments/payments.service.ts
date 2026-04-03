@@ -189,22 +189,22 @@ export class PaymentsService {
     const end = new Date(to)
 
     if (interval === Interval.month) {
-      start.setDate(1)
-      start.setHours(0, 0, 0, 0)
+      start.setUTCDate(1)
+      start.setUTCHours(0, 0, 0, 0)
 
-      end.setMonth(end.getMonth() + 1)
-      end.setDate(0)
-      end.setHours(23, 59, 59, 999)
+      end.setUTCMonth(end.getUTCMonth() + 1)
+      end.setUTCDate(0)
+      end.setUTCHours(23, 59, 59, 999)
     }
 
     if (interval === Interval.week) {
-      const startDay = start.getDay() || 7 // Convert Sunday(0) to 7
-      start.setDate(start.getDate() - startDay + 1)
-      start.setHours(0, 0, 0, 0)
+      const startDay = start.getUTCDay() || 7 // Convert Sunday(0) to 7
+      start.setUTCDate(start.getUTCDate() - startDay + 1)
+      start.setUTCHours(0, 0, 0, 0)
 
-      const endDay = end.getDay() || 7
-      end.setDate(end.getDate() + (7 - endDay))
-      end.setHours(23, 59, 59, 999)
+      const endDay = end.getUTCDay() || 7
+      end.setUTCDate(end.getUTCDate() + (7 - endDay))
+      end.setUTCHours(23, 59, 59, 999)
     }
 
     return { start, end }

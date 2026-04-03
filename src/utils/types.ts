@@ -19,8 +19,8 @@ export type User = {
 }
 
 export enum Interval {
-  week,
-  month,
+  week = 'week',
+  month = 'month',
 }
 
 export type TrendData = {
