@@ -12,6 +12,10 @@ import { UpdateUserRoleDto } from './dtos/update-role.dto'
 export class UsersService {
   constructor(private readonly db: DatabaseService) {}
 
+  async me(user: User) {
+    return this.db.user.findUnique({ where: { id: user.id }, select: { id: true, username: true, role: true } })
+  }
+
   async list(query: ListUsersDto, user: User) {
     const limit = query.limit ?? 10
 

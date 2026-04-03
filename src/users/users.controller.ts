@@ -11,6 +11,13 @@ import { UpdateUserRoleDto } from './dtos/update-role.dto'
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('me')
+  @Auth()
+  async httpGetMe(@AuthUser() u: User): HttpResponse {
+    const user = await this.usersService.me(u)
+    return { success: true, message: 'User fetched successfully.', data: { user } }
+  }
+
   @Get('list')
   @Auth({ roles: ['admin'] })
   async httpListUsers(@Query() query: ListUsersDto, @AuthUser() user: User): HttpResponse {
