@@ -4,7 +4,8 @@ import { CreateCategoryDto } from './dtos/create-category.dto'
 import { CursorPaginationDto } from 'src/utils/pagination'
 import { UpdateCategoryDto } from './dtos/update-category.dto'
 import { ERR_CODES } from 'src/utils/constants'
-import { CategoryNotFoundError } from './categories.errors'
+import { CannotDeleteCategoryError, CategoryNotFoundError } from './categories.errors'
+import { Prisma } from 'generated/prisma/client'
 
 @Injectable()
 export class CategoriesService {
@@ -48,6 +49,11 @@ export class CategoriesService {
   async delete(categoryId: string) {
     await this.db.category.delete({ where: { id: categoryId } }).catch(err => {
       if (err.code === ERR_CODES.NOT_FOUND) throw new CategoryNotFoundError()
+
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
+        throw new CannotDeleteCategoryError()
+      }
+
       throw err
     })
   }
