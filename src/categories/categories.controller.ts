@@ -18,7 +18,7 @@ export class CategoriesController {
   }
 
   @Get('list')
-  @Auth({ roles: ['analyst', 'admin'] })
+  @Auth()
   async httpListCategories(@Query() query: CursorPaginationDto): HttpResponse {
     const result = await this.categoriesService.list(query)
     return { success: true, message: 'Categories listed successfully.', data: result }
