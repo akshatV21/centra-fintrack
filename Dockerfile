@@ -29,4 +29,4 @@ RUN npm ci --omit=dev
 COPY --from=development /app/dist ./dist
 COPY --from=development /app/generated ./generated
 
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
