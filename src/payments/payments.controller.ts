@@ -6,6 +6,7 @@ import { HttpResponse } from 'src/utils/types'
 import { ListPaymentsDto } from './dtos/list-payments.dto'
 import { UpdateAmountDto } from './dtos/update-payment.dto'
 import { UpdateTypeDto } from './dtos/update-type.dto'
+import { PaymentsTrendDto } from './dtos/aggregate.dto'
 
 @Controller('payments')
 export class PaymentsController {
@@ -44,5 +45,12 @@ export class PaymentsController {
   async httpGetSummary(): HttpResponse {
     const summary = await this.paymentsService.summary()
     return { success: true, message: 'Summary fetched successfully.', data: { summary } }
+  }
+
+  @Get('trend')
+  @Auth()
+  async httpGetTrend(@Query() query: PaymentsTrendDto): HttpResponse {
+    const chart = await this.paymentsService.trend(query)
+    return { success: true, message: 'Trend fetched successfully.', data: { chart } }
   }
 }

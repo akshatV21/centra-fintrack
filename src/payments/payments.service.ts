@@ -8,6 +8,8 @@ import { InvalidCategoryError, PaymentNotFoundError } from './payments.errors'
 import { ListPaymentsDto } from './dtos/list-payments.dto'
 import { UpdateAmountDto } from './dtos/update-payment.dto'
 import { UpdateTypeDto } from './dtos/update-type.dto'
+import { PaymentsTrendDto } from './dtos/aggregate.dto'
+import { ChartData, Interval, TrendData } from 'src/utils/types'
 
 @Injectable()
 export class PaymentsService {
@@ -129,20 +131,9 @@ export class PaymentsService {
     weekStart.setHours(0, 0, 0, 0)
 
     const [ledger, monthData, weekData] = await Promise.all([
-      this.db.ledger.findUnique({
-        where: { id: LEDGER_ID },
-        select: { balance: true, expense: true, income: true },
-      }),
-      this.db.payment.groupBy({
-        by: ['type'],
-        where: { date: { gte: monthStart } },
-        _sum: { amount: true },
-      }),
-      this.db.payment.groupBy({
-        by: ['type'],
-        where: { date: { gte: weekStart } },
-        _sum: { amount: true },
-      }),
+      this.db.ledger.findUnique({ where: { id: LEDGER_ID }, select: { balance: true, expense: true, income: true } }),
+      this.db.payment.groupBy({ by: ['type'], where: { date: { gte: monthStart } }, _sum: { amount: true } }),
+      this.db.payment.groupBy({ by: ['type'], where: { date: { gte: weekStart } }, _sum: { amount: true } }),
     ])
 
     const parse = (data: any[]) => {
@@ -158,5 +149,64 @@ export class PaymentsService {
     }
 
     return { allTime: ledger, month: parse(monthData), week: parse(weekData) }
+  }
+
+  async trend(query: PaymentsTrendDto) {
+    const { start, end } = this.snapToBoundaries(new Date(query.from), new Date(query.to), query.interval)
+
+    const interval = Prisma.raw(`'${query.interval}'`)
+    const category = query.categoryId ? Prisma.sql`AND "categoryId" = ${query.categoryId}` : Prisma.empty
+
+    const raw = await this.db.$queryRaw<TrendData[]>`
+      SELECT 
+        DATE_TRUNC(${interval}, date) as period,
+        type,
+        SUM(amount) as total
+      FROM "Payment"
+      WHERE date >= ${start} 
+        AND date <= ${end}
+        ${category}
+      GROUP BY period, type
+      ORDER BY period ASC;`
+
+    const chart = new Map<string, ChartData>()
+
+    for (const row of raw) {
+      const key = row.period.toISOString()
+      if (!chart.has(key)) chart.set(key, { period: row.period, income: 0, expense: 0 })
+
+      const entry = chart.get(key)!
+
+      if (row.type === PaymentType.income) entry.income = Number(row.total)
+      else entry.expense = Number(row.total)
+    }
+
+    return Array.from(chart.values()).sort((a, b) => a.period.getTime() - b.period.getTime())
+  }
+
+  private snapToBoundaries(from: Date, to: Date, interval: Interval) {
+    const start = new Date(from)
+    const end = new Date(to)
+
+    if (interval === Interval.month) {
+      start.setDate(1)
+      start.setHours(0, 0, 0, 0)
+
+      end.setMonth(end.getMonth() + 1)
+      end.setDate(0)
+      end.setHours(23, 59, 59, 999)
+    }
+
+    if (interval === Interval.week) {
+      const startDay = start.getDay() || 7 // Convert Sunday(0) to 7
+      start.setDate(start.getDate() - startDay + 1)
+      start.setHours(0, 0, 0, 0)
+
+      const endDay = end.getDay() || 7
+      end.setDate(end.getDate() + (7 - endDay))
+      end.setHours(23, 59, 59, 999)
+    }
+
+    return { start, end }
   }
 }

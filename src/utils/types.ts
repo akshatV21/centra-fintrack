@@ -1,4 +1,4 @@
-import { Role } from 'generated/prisma/enums'
+import { PaymentType, Role } from 'generated/prisma/enums'
 
 export type HttpResponse = Promise<{
   success: boolean
@@ -16,4 +16,21 @@ export type AuthOptions = {
 export type User = {
   id: string
   role: Role
+}
+
+export enum Interval {
+  week,
+  month,
+}
+
+export type TrendData = {
+  period: Date
+  type: PaymentType
+  total: number
+}
+
+export type ChartData = {
+  period: Date
+  income: number
+  expense: number
 }
