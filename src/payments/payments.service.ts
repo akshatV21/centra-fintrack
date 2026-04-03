@@ -152,7 +152,21 @@ export class PaymentsService {
   }
 
   async trend(query: PaymentsTrendDto) {
+    const chart = new Map<string, ChartData>()
     const { start, end } = this.snapToBoundaries(new Date(query.from), new Date(query.to), query.interval)
+
+    let current = new Date(start)
+
+    while (current <= end) {
+      chart.set(current.toISOString(), {
+        period: new Date(current),
+        income: 0,
+        expense: 0,
+      })
+
+      if (query.interval === Interval.month) current.setMonth(current.getMonth() + 1)
+      else current.setDate(current.getDate() + 7)
+    }
 
     const interval = Prisma.raw(`'${query.interval}'`)
     const category = query.categoryId ? Prisma.sql`AND "categoryId" = ${query.categoryId}` : Prisma.empty
@@ -169,12 +183,8 @@ export class PaymentsService {
       GROUP BY period, type
       ORDER BY period ASC;`
 
-    const chart = new Map<string, ChartData>()
-
     for (const row of raw) {
       const key = row.period.toISOString()
-      if (!chart.has(key)) chart.set(key, { period: row.period, income: 0, expense: 0 })
-
       const entry = chart.get(key)!
 
       if (row.type === PaymentType.income) entry.income = Number(row.total)
