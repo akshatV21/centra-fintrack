@@ -1,0 +1,1 @@
+import{r as e}from"./index-xtDn2swk.js";var t={async list(t){return(await e.get(`/categories/list`,{params:t})).data},async create(t){return(await e.post(`/categories/create`,t)).data},async update(t){return(await e.patch(`/categories/update`,t)).data},async delete(t){return(await e.delete(`/categories/${t}`)).data}};export{t};
