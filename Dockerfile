@@ -8,10 +8,7 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY /package*.json .
 RUN npm install
 
-COPY /src ./src
-COPY /prisma ./prisma
-COPY /tsconfig*.json .
-COPY /nest-cli.json .
+COPY / ./
 
 RUN npm run db:generate
 RUN npm run build
