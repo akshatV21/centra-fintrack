@@ -8,7 +8,7 @@ datasource db {
 }
 
 enum Role {
-  user
+  viewer
   analyst
   admin
 }
@@ -24,7 +24,7 @@ model User {
   username String @unique
   password String
 
-  role   Role   @default(user)
+  role   Role   @default(viewer)
   status Status @default(active)
 
   refresh String?

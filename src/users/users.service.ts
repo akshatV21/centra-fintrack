@@ -20,7 +20,7 @@ export class UsersService {
     const limit = query.limit ?? 10
 
     const users = await this.db.user.findMany({
-      where: { id: { not: user.id }, role: query.role ?? Role.user, status: query.status ?? Status.active },
+      where: { id: { not: user.id }, role: query.role ?? Role.viewer, status: query.status ?? Status.active },
       cursor: query.cursor ? { id: query.cursor } : undefined,
       take: limit + 1,
       orderBy: [{ createdAt: 'asc' }, { updatedAt: 'asc' }],
